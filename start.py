@@ -2,7 +2,9 @@
 
 import sqlite3
 import time, datetime
+import subprocess
 
+IPTABLES = "/usr/sbin/iptables"
 DB_PATH = "sshdun.db"
 TABLES_NAME = "sshdun"
 conn = sqlite3.connect(DB_PATH)
@@ -126,6 +128,8 @@ if __name__ == "__main__":
     for hostname, filename, position in all_files:
         logs = read_log_file(hostname, filename, position)
         save_logs(logs)
+
+    returnCode = subprocess.call([IPTABLES, "-F", TABLES_NAME])
     for i in load_logs("2018-10-01 0:0:0"):
-        print(i)
+        returnCode = subprocess.call([IPTABLES, "-A", TABLES_NAME, "-s", i[0], "-j", "DROP"])
     conn.close()
