@@ -5,9 +5,26 @@ import time, datetime
 import subprocess
 
 IPTABLES = "/usr/sbin/iptables"
+GREP = "/usr/bin/grep"
 DB_PATH = "sshdun.db"
 TABLES_NAME = "sshdun"
 conn = sqlite3.connect(DB_PATH)
+
+
+def create_iptables():
+    # shell = [IPTABLES, "-N", TABLES_NAME]
+    # print(shell)
+    # returnCode = subprocess.call(shell)
+    # time.sleep(10)
+    shell = [IPTABLES, "-I", "INPUT", "3", "-p", "tcp", "-m", "tcp", "--dport", "22", "-j", "sshdun"]
+    print(shell)
+    returnCode = subprocess.call(shell)
+
+
+def insert_rule():
+    returnCode = subprocess.call([IPTABLES, "-F", TABLES_NAME])
+    for i in load_logs("2018-10-01 0:0:0"):
+        returnCode = subprocess.call([IPTABLES, "-A", TABLES_NAME, "-s", i[0], "-j", "DROP"])
 
 
 # 保存数据到Firewall表中
@@ -123,13 +140,15 @@ def create_table():
 files_rows = ["localhost", "/var/log/secure", 0]
 if __name__ == "__main__":
     create_table()
-    # save_files((files_rows,))
+    try:
+        save_files((files_rows,))
+    except Exception as e:
+        print("保存到Files表出错", e)
     all_files = load_files()
     for hostname, filename, position in all_files:
         logs = read_log_file(hostname, filename, position)
         save_logs(logs)
 
-    returnCode = subprocess.call([IPTABLES, "-F", TABLES_NAME])
-    for i in load_logs("2018-10-01 0:0:0"):
-        returnCode = subprocess.call([IPTABLES, "-A", TABLES_NAME, "-s", i[0], "-j", "DROP"])
+    insert_rule()
+
     conn.close()
