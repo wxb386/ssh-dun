@@ -1,0 +1,25 @@
+-- 日志文件表
+create table if not exists sshdun_files (
+    hostname char(32) not null,
+    filename char(255) not null,
+    position int not null
+);
+
+-- 日志信息表
+create table if not exists sshdun_logs (
+    logintime int,
+    hostname char(32) not null,
+    username char(32) not null,
+    ip char(15) not null,
+    primary key(logintime)
+);
+
+-- 防火墙规则表
+create table if not exists sshdun_firewall (
+    logintime int,
+    hostname char(32) not null,
+    tablesname char(10) not null,
+    ip char(15) not null,
+    primary key(logintime)
+);
+
