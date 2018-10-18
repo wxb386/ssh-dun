@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-# 文件表
+# 日志文件表
 class Files(Base):
     __tablename__ = "sshdun_files"
 
@@ -33,6 +33,7 @@ class Logs(Base):
         return "[%s,%s,%s,%s,%s]" % (self.id, self.hostname, self.logintime, self.username, self.ip)
 
 
+# 创建数据表
 def create_tables(engine):
     Base.metadata.create_all(engine)
 

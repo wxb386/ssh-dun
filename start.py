@@ -8,7 +8,7 @@ from modules import Files, Logs
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(conf.DB_URL, encoding="utf8", echo=True)
+engine = create_engine(conf.DB_URL, encoding="utf8", echo=False)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
@@ -22,7 +22,7 @@ def insert_rule(hostname):
 
 
 # 查询最近时间内超过N次登录失败的ip
-# 第一参数表示多少天之前,第二参数是失败次数
+# 第2参数表示多少天之前,第3参数是失败次数
 def load_logs(hostname, days, times):
     seconds = time.time() - days * 86400
     last_time = datetime.fromtimestamp(seconds)
@@ -35,7 +35,6 @@ def load_logs(hostname, days, times):
 
 
 # 保存数据到Logs表中
-# 参数是包含(logintime,hostname,username,ip)的列表
 def save_logs_to_db(rows):
     session.add_all(rows)
     session.commit()
