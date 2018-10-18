@@ -1,7 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.6
 
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
@@ -32,26 +32,10 @@ class Logs(Base):
     def __str__(self):
         return "[%s,%s,%s,%s,%s]" % (self.id, self.hostname, self.logintime, self.username, self.ip)
 
+
 def create_tables(engine):
     Base.metadata.create_all(engine)
 
-if __name__ == '__main__':
-    from sqlalchemy import create_engine, MetaData
-    from sqlalchemy.orm import sessionmaker
-    import settings as conf
-    import datetime
 
-    engine = create_engine(conf.DB_URL, encoding="utf8", echo=True)
-    create_tables(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    logs = Logs(hostname="localhost",
-                logintime=datetime.datetime(2018, 10, 16, 0, 0, 0),
-                username="root",
-                ip="192.168.80.80")
-    session.add(logs)
-    session.commit()
-    q = session.query(Logs).filter(Logs.logintime <= datetime.datetime(2018, 10, 16, 0, 0, 0))
-    for i in q:
-        print(i)
-    session.close()
+if __name__ == '__main__':
+    pass

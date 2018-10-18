@@ -8,25 +8,17 @@ from modules import Files, Logs
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 
-IPTABLES = "/usr/sbin/iptables"
-GREP = "/usr/bin/grep"
-DB_PATH = "sshdun.db"
-TABLES_NAME = "sshdun"
-
 engine = create_engine(conf.DB_URL, encoding="utf8", echo=True)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-def create_iptables():
-    subprocess.call([IPTABLES, "-N", TABLES_NAME])
-    subprocess.call([IPTABLES, "-I", "INPUT", "3", "-p", "tcp", "-m", "tcp", "--dport", "22", "-j", "sshdun"])
-
-
+# 添加防火墙规则
 def insert_rule(hostname):
-    subprocess.call([IPTABLES, "-F", TABLES_NAME])
-    for row in load_logs(hostname, conf.LOGIN_FAIL_LONG_TIME,conf.LOGIN_FAIL_TIMES):
-        subprocess.call([IPTABLES, "-A", TABLES_NAME, "-s", row[0], "-j", "DROP"])
+    rows = load_logs(hostname, conf.LOGIN_FAIL_LONG_TIME, conf.LOGIN_FAIL_TIMES)
+    subprocess.call([conf.IPTABLES, "-F", conf.TABLES_NAME])
+    for row in rows:
+        subprocess.call([conf.IPTABLES, "-A", conf.TABLES_NAME, "-s", row[0], "-j", "DROP"])
 
 
 # 查询最近时间内超过N次登录失败的ip
@@ -39,7 +31,6 @@ def load_logs(hostname, days, times):
         .filter(Logs.hostname == hostname) \
         .group_by(Logs.ip) \
         .having(func.count(Logs.ip) > times)
-    print("=" * 30, ">", logs_rows)
     return logs_rows
 
 
@@ -92,6 +83,12 @@ def check_file(row):
         session.commit()
 
 
+# 创建防火墙的规则链
+def create_iptables():
+    subprocess.call([conf.IPTABLES, "-N", conf.TABLES_NAME])
+    subprocess.call([conf.IPTABLES, "-I", "INPUT", "3", "-p", "tcp", "-m", "tcp", "--dport", "22", "-j", "sshdun"])
+
+
 # 初始化函数,进行建表和写入初始测试数据
 def init():
     import modules
@@ -116,7 +113,6 @@ def init():
 
 
 if __name__ == "__main__":
-    # init()
     all_files = session.query(Files)
     for row in all_files:
         check_file(row)
